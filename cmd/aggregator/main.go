@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cloud-logging-agg/model"
 	"encoding/csv"
 	"io"
 	"os"
@@ -8,18 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/samber/lo"
-
 	"github.com/fatih/color"
 )
-
-type Row struct {
-	InsertID          string
-	ReceivedTimestamp time.Time
-	RequestLatency    time.Duration
-}
-
-type Rows []Row
 
 func main() {
 	csvFilePath := os.Getenv("CSV_FILE_PATH")
@@ -34,7 +25,7 @@ func main() {
 		panic(err)
 	}
 
-	allRows := Rows{}
+	allRows := model.Rows{}
 	for {
 		rec, err := csvReader.Read()
 		if err == io.EOF {
@@ -55,7 +46,7 @@ func main() {
 			panic(err)
 		}
 
-		allRows = append(allRows, Row{
+		allRows = append(allRows, model.Row{
 			InsertID:          rec[8],
 			ReceivedTimestamp: timestamp,
 			RequestLatency:    reqLatency,
@@ -86,50 +77,4 @@ func (d durationString) ToDuration() (time.Duration, error) {
 	}
 
 	return time.Duration(floatPart * float64(time.Second)), nil
-}
-
-// InsertID で重複を削除した Rows を返す
-// なんかもうちょいいい書き方ありそう
-func (r Rows) UniqByInsertID() Rows {
-	insertIDs := lo.Map(r, func(row Row, _ int) string {
-		return row.InsertID
-	})
-
-	uniqInsertIDs := lo.Uniq(insertIDs)
-
-	return lo.Map(uniqInsertIDs, func(insertID string, _ int) Row {
-		row, found := lo.Find(r, func(row Row) bool {
-			return row.InsertID == insertID
-		})
-		if !found {
-			panic("not found")
-		}
-
-		return row
-	})
-}
-
-func (r Rows) AvgReqLatencyMs() int {
-	sum := 0
-	for _, row := range r {
-		sum += int(row.RequestLatency.Milliseconds())
-	}
-
-	if len(r) > 0 {
-		return sum / len(r)
-	}
-
-	return 0
-}
-
-func (r Rows) Percentile50ReqLatencyMs() int {
-	if len(r) == 0 {
-		return 0
-	}
-
-	if len(r)%2 == 0 {
-		return int(r[len(r)/2].RequestLatency.Milliseconds())
-	} else {
-		return int(r[len(r)/2+1].RequestLatency.Milliseconds())
-	}
 }
