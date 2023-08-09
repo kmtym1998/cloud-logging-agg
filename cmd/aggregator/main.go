@@ -61,7 +61,7 @@ func main() {
 
 	avgReqLatencyMs := uniqRows.AvgReqLatencyMs()
 
-	color.Green("Avg Req Latency: %d ms", avgReqLatencyMs)
+	color.Green("Avg Req Latency: %dms", avgReqLatencyMs)
 
 	color.Green("99th Percentile Req Latency: %dms", uniqRows.PercentileNReqLatency(99).Milliseconds())
 	color.Green("90th Percentile Req Latency: %dms", uniqRows.PercentileNReqLatency(90).Milliseconds())
