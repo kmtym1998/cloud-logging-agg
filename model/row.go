@@ -50,9 +50,13 @@ func (r Rows) AvgReqLatencyMs() int {
 	return 0
 }
 
-func (r Rows) PercentileNReqLatencyMs(n int) time.Duration {
+func (r Rows) PercentileNReqLatency(n int) time.Duration {
 	if len(r) == 0 {
 		return 0
+	}
+
+	if n < 0 || n > 100 {
+		panic("n must be between 0 and 100")
 	}
 
 	sort.Slice(r, func(i, j int) bool {
