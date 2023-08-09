@@ -67,14 +67,13 @@ func (r Rows) PercentileNReqLatency(n int) time.Duration {
 	percentileIndexGT := int(math.Ceil(percentileIndexF))
 	percentileIndexLT := int(math.Floor(percentileIndexF))
 
-	if percentileIndexGT == percentileIndexLT {
-		return r[percentileIndexGT].RequestLatency
-	}
-
 	percentileGTVal := r[percentileIndexGT].RequestLatency
 	percentileLTVal := r[percentileIndexLT].RequestLatency
 
-	remainder := (percentileGTVal - percentileLTVal) * percentileLTVal * time.Duration(n) / 100
+	x := float64(percentileLTVal) * float64(n) / 100
+	y := math.Ceil(x)
+
+	remainder := (percentileGTVal - percentileLTVal) * time.Duration(x-y)
 
 	return percentileLTVal + remainder
 }

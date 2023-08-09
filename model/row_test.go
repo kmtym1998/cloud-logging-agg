@@ -46,4 +46,25 @@ func TestPercentileNReqLatencyMs(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("when sample size is 256", func(t *testing.T) {
+		rows := make([]Row, 256)
+		for i := range rows {
+			rows[i] = Row{
+				RequestLatency: time.Duration(i) * time.Second,
+			}
+		}
+
+		for _, n := range target {
+			t.Run("n="+fmt.Sprint(n), func(t *testing.T) {
+				got := Rows(rows).PercentileNReqLatency(n)
+				want := time.Duration(float64(n)*2.56) * time.Second
+				if got != want {
+					t.Errorf("got %v, want %v", got, want)
+				} else {
+					t.Log("got", got.Seconds(), "want", want.Seconds())
+				}
+			})
+		}
+	})
 }

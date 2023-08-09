@@ -62,6 +62,10 @@ func main() {
 	avgReqLatencyMs := uniqRows.AvgReqLatencyMs()
 
 	color.Green("Avg Req Latency: %d ms", avgReqLatencyMs)
+
+	color.Green("99th Percentile Req Latency: %dms", uniqRows.PercentileNReqLatency(99).Milliseconds())
+	color.Green("90th Percentile Req Latency: %dms", uniqRows.PercentileNReqLatency(90).Milliseconds())
+	color.Green("50th Percentile Req Latency: %dms", uniqRows.PercentileNReqLatency(50).Milliseconds())
 }
 
 // durationString の例: 0.054366s
