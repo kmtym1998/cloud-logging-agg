@@ -18,6 +18,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer f.Close()
 
 	csvReader := csv.NewReader(f)
 
@@ -59,13 +60,27 @@ func main() {
 
 	color.Green("Uniq Rows Loaded! rows count: %d", len(uniqRows))
 
-	avgReqLatencyMs := uniqRows.AvgReqLatencyMs()
+	rampUpMin, err := strconv.Atoi(os.Getenv("RAMPUP_MIN"))
+	if err != nil {
+		panic(err)
+	}
+
+	rampDownMin, err := strconv.Atoi(os.Getenv("RAMPDOWN_MIN"))
+	if err != nil {
+		panic(err)
+	}
+
+	targetRows := uniqRows.FilterRampingRows(rampUpMin, rampDownMin)
+
+	color.Green("Target Rows Loaded! rows count: %d", len(targetRows))
+
+	avgReqLatencyMs := targetRows.AvgReqLatencyMs()
 
 	color.Green("Avg Req Latency: %dms", avgReqLatencyMs)
 
-	color.Green("99th Percentile Req Latency: %dms", uniqRows.PercentileNReqLatency(99).Milliseconds())
-	color.Green("90th Percentile Req Latency: %dms", uniqRows.PercentileNReqLatency(90).Milliseconds())
-	color.Green("50th Percentile Req Latency: %dms", uniqRows.PercentileNReqLatency(50).Milliseconds())
+	color.Green("99th Percentile Req Latency: %dms", targetRows.PercentileNReqLatency(99).Milliseconds())
+	color.Green("90th Percentile Req Latency: %dms", targetRows.PercentileNReqLatency(90).Milliseconds())
+	color.Green("50th Percentile Req Latency: %dms", targetRows.PercentileNReqLatency(50).Milliseconds())
 }
 
 // durationString の例: 0.054366s

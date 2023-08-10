@@ -77,3 +77,22 @@ func (r Rows) PercentileNReqLatency(n int) time.Duration {
 
 	return percentileLTVal + remainder
 }
+
+// ramp up / ramp down 中の row を除いた Rows を返す
+func (r Rows) FilterRampingRows(rampUpMin, rumpDownMin int) Rows {
+	rampUpDuration := time.Duration(rampUpMin) * time.Minute
+	rampDownDuration := time.Duration(rumpDownMin) * time.Minute
+
+	sort.Slice(r, func(i, j int) bool {
+		return r[i].ReceivedTimestamp.Before(r[j].ReceivedTimestamp)
+	})
+
+	rampUpStart := r[0].ReceivedTimestamp
+	rampUpEnd := rampUpStart.Add(rampUpDuration)
+	rampDownStart := r[len(r)-1].ReceivedTimestamp
+	rampDownEnd := rampDownStart.Add(-rampDownDuration)
+
+	return lo.Filter(r, func(row Row, _ int) bool {
+		return row.ReceivedTimestamp.After(rampUpEnd) && row.ReceivedTimestamp.Before(rampDownEnd)
+	})
+}
