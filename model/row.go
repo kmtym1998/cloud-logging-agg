@@ -89,10 +89,10 @@ func (r Rows) FilterRampingRows(rampUpMin, rumpDownMin int) Rows {
 
 	rampUpStart := r[0].ReceivedTimestamp
 	rampUpEnd := rampUpStart.Add(rampUpDuration)
-	rampDownStart := r[len(r)-1].ReceivedTimestamp
-	rampDownEnd := rampDownStart.Add(-rampDownDuration)
+	rampDownEnd := r[len(r)-1].ReceivedTimestamp
+	rampDownStart := rampDownEnd.Add(-rampDownDuration)
 
 	return lo.Filter(r, func(row Row, _ int) bool {
-		return row.ReceivedTimestamp.After(rampUpEnd) && row.ReceivedTimestamp.Before(rampDownEnd)
+		return row.ReceivedTimestamp.After(rampUpEnd) && row.ReceivedTimestamp.Before(rampDownStart)
 	})
 }
